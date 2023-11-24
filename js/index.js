@@ -1,33 +1,34 @@
-const { Configuration, OpenAIApi } = require("openai");
+const { OpenAI } = require("openai");
 
-const configuration = new Configuration({
-  apiKey: "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",
+const openai = new OpenAI({
+  apiKey: "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"
 });
 
-const openai = new OpenAIApi(configuration);
+const userInput = "longsword";
 
-// const userInput = $("#userInput");
-const userInput = "success tips";
+const userInput2 = "goblin";
 
 const getResponse = async () => {
-  const response = await openai.createChatCompletion({
-    model: "gpt-3.5",
-    messages: [
-      {
-        role: "user",
-        content: `suggest 5 catchy titles for blog post about ${userInput}`,
-      },
-    ],
-    temperature: 0,
-    max_tokens: 500,
-    top_p: 1.0,
-    frequency_penalty: 0.0,
-    presence_penalty: 0.0,
-  });
+  try {
+    const response = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      messages: [
+        {
+          role: "user",
+          content: `suggest 3 one-sentence descriptions for a ${userInput} attack against a ${userInput2}. write them in first-person perspective. make the description gory.`,
+        },
+      ],
+      temperature: 0,
+      max_tokens: 500,
+      top_p: 1.0,
+      frequency_penalty: 0.0,
+      presence_penalty: 0.0,
+    });
 
-  console.log(response.data.choices[0].message);
+    console.log(response.choices[0].message.content);
+  } catch (error) {
+    console.error("Error fetching response:", error);
+  }
 };
 
 getResponse();
-
-// $("#melee").on(click, function () {});
