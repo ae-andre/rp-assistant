@@ -1,43 +1,87 @@
+const dotenv = require('dotenv').config({path: '../.env'});
 const { OpenAI } = require("openai");
 const inquirer = require('inquirer');
-require('dotenv').config();
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
-// const getStartedBtn = document.getElementById("#get-started")
-
-const questions = [
+const attackChoices = [
   {
     type: 'list',
     name: 'typeOfAttack',
     message: "What type of attack are you doing?",
     choices: ['Melee', 'Ranged', 'Spell'],
     },
+];
+
+const meleeChoices = [
   {
     type: 'list',
     name: 'typeOfMelee',
     message: "What type of melee attack are you doing?",
     choices: ['longsword', 'greataxe', 'dagger', 'club']
+  },
+];
+
+const rangedChoices = [
+  {
+    type: 'list',
+    name: 'typeOfRanged',
+    message: "What type of ranged attack are you doing?",
+    choices: ['bow', 'javelin', 'dagger', 'dart']
   }
 ]
 
+const spellChoices = [
+  {
+    type: 'list',
+    name: 'typeOfSpell',
+    message: "What type of spell attack are you doing?",
+    choices: ['fire', 'cold', 'thunder', 'acid']
+  }
+]
 
-inquirer.prompt(questions)
-  .then(answers => {
-    getResponse(answers);
-    // console.log(answers.typeOfAttack);
+inquirer.prompt(attackChoices)
+  .then((answers) => {
+    let chosenType;
+    let attackType = answers.typeOfAttack.toLowerCase();
+
+    if (answers.typeOfAttack === 'Melee') {
+      chosenType = meleeChoices;
+    } else if (answers.typeOfAttack === 'Ranged') {
+      chosenType = rangedChoices;
+    } else if (answers.typeOfAttack === 'Spell') {
+      chosenType = spellChoices;
+    }
+    return { chosenType, attackType};
+  })
+
+  .then(({ chosenType, attackType }) => {
+    return inquirer.prompt(chosenType)
+      .then(specificAnswers => {
+        const specificAttackType = specificAnswers[Object.keys(specificAnswers)[0]];
+        return [specificAttackType, attackType];
+    });
+  })
+
+  .then (finalAnswers => {
+      // console.log(finalAnswers);
+      getResponse(finalAnswers)
+    })
+
+  .catch((error) => {
+  console.log(error)
 });
 
-const getResponse = async () => {
+const getResponse = async (a, b) => {
   try {
     const response = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: [
         {
           role: "user",
-          content: `suggest 3 one-sentence descriptions for a ${answers.typeOfAttack} attack using a ${answers.typeOfMelee}. write them in first-person perspective. make the description gory.`,
+          content: `suggest 3 one-sentence descriptions for a ${a} ${b} attack. write them in first-person perspective. make the description gory.`,
         },
       ],
       temperature: 0,
@@ -52,12 +96,6 @@ const getResponse = async () => {
     console.error("Error fetching response:", error);
   }
 };
-
-// getResponse();
-
-// function assignType() {
-  
-// }
 
 
 // getStartedBtn.addEventListener('click', function() {
